@@ -2,7 +2,7 @@
 //  CombineTasksApp.swift
 //  CombineTasks
 //
-//  Created by Anastasiya Omak on 22/05/2024.
+//  Created by Anastasiya Omak on 20/05/2024.
 //
 
 import SwiftUI
@@ -11,7 +11,7 @@ import SwiftUI
 struct CombineTasksApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            FirstPipelineView()
         }
     }
 }
