@@ -29,8 +29,8 @@ struct CountdownView: View {
                                 Text("Подключение к серверу...")
                                     .font(.title2)
                                     .fontWeight(.semibold)
-                                    .scaleEffect(viewModel.scale)
-                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.scale)
+                                    .rotationEffect(Angle.degrees(viewModel.rotation))
+                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: false), value: viewModel.rotation)
                                 ProgressView()
                             }
                         case .fetchingItems:
@@ -54,7 +54,7 @@ struct CountdownView: View {
                                 Spacer().frame(width: 20)
                                 Text(item.name)
                                     .frame(width: 140, alignment: .leading)
-                                Text("\(String(item.price))$")
+                                Text("\(String(item.price))€")
                             }
                         }
                     }
@@ -93,6 +93,7 @@ class CountdownViewModel: ObservableObject {
     @Published var viewState: LoadingState<[Product]> = .initial
     @Published var currentPhase: Phase = .connectingToServer
     @Published var timeString = ""
+    @Published var rotation: Double = 0
     @Published var scale: CGFloat = 1.0
 
     private var secondsElapsed = 0
@@ -100,20 +101,20 @@ class CountdownViewModel: ObservableObject {
     private let timePublisher = PassthroughSubject<String, Never>()
     private var subscriptions = Set<AnyCancellable>()
     private var timerSubscription: AnyCancellable?
-    private var animationSubscription: AnyCancellable?
+    private var rotationAnimationSubscription: AnyCancellable?
+    private var scaleAnimationSubscription: AnyCancellable?
 
     private var products: [Product] = [
-        .init(imageName: "flipphone", name: "iPhone", price: 800),
-        .init(imageName: "ipad.gen1", name: "iPad", price: 1300),
-        .init(imageName: nil, name: "iPencil", price: 200),
-        .init(imageName: "visionpro", name: "Vision pro", price: 3000),
-        .init(imageName: "magicmouse", name: "Magic mouse", price: 300),
-        .init(imageName: "applewatch", name: "Apple Watch", price: 500),
-        .init(imageName: "airpods", name: "Air Pods", price: 99),
-        .init(imageName: "homepod", name: "Home pod", price: 80),
+        .init(imageName: "airplane", name: "Air plane", price: 100000),
+        .init(imageName: "bus", name: "Bus", price: 20000),
+        .init(imageName: nil, name: "Scooter", price: 200),
+        .init(imageName: "tram", name: "Tram", price: 10000),
+        .init(imageName: "ferry", name: "Ferry", price: 30000),
         .init(imageName: "car", name: "Car", price: 5000),
-        .init(imageName: "hearingdevice.ear", name: "Ear", price: 99),
-        .init(imageName: "trash", name: "Trash", price: 150),
+        .init(imageName: "sailboat", name: "Sail Boat", price: 99),
+        .init(imageName: "scooter", name: "Scooter", price: 1000),
+        .init(imageName: "fuelpump", name: "Fuelpump", price: 99),
+        
     ]
 
     init() {
@@ -126,7 +127,7 @@ class CountdownViewModel: ObservableObject {
         viewState = .loading
         currentPhase = .connectingToServer
         simulateDataLoading()
-        initiateAnimations()
+        initiateRotationAnimation()
     }
 
     private func setupBindings() {
@@ -154,14 +155,27 @@ class CountdownViewModel: ObservableObject {
     private func simulateDataLoading() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             self.currentPhase = .fetchingItems
+            self.initiateScaleAnimation()
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 self.displayProducts()
             }
         }
     }
 
-    private func initiateAnimations() {
-        animationSubscription = Timer
+    private func initiateRotationAnimation() {
+        rotationAnimationSubscription = Timer
+            .publish(every: 0.01, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                withAnimation {
+                    self.rotation += 1
+                }
+            }
+    }
+
+    private func initiateScaleAnimation() {
+        scaleAnimationSubscription = Timer
             .publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
