@@ -1,5 +1,5 @@
 //
-//  TimerView.swift
+//  CountdownView.swift
 //  CombineTasks
 //
 //  Created by Anastasiya Omak on 22/05/2024.
@@ -29,9 +29,8 @@ struct CountdownView: View {
                                 Text("Подключение к серверу...")
                                     .font(.title2)
                                     .fontWeight(.semibold)
-                                    .offset(x: viewModel.offsetX)
                                     .scaleEffect(viewModel.scale)
-                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.offsetX)
+                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.scale)
                                 ProgressView()
                             }
                         case .fetchingItems:
@@ -39,9 +38,8 @@ struct CountdownView: View {
                                 Text("Загрузка товаров...")
                                     .font(.title2)
                                     .fontWeight(.semibold)
-                                    .offset(x: viewModel.offsetX)
                                     .scaleEffect(viewModel.scale)
-                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.offsetX)
+                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.scale)
                                 ProgressView()
                             }
                         }
@@ -95,7 +93,6 @@ class CountdownViewModel: ObservableObject {
     @Published var viewState: LoadingState<[Product]> = .initial
     @Published var currentPhase: Phase = .connectingToServer
     @Published var timeString = ""
-    @Published var offsetX: CGFloat = 0.0
     @Published var scale: CGFloat = 1.0
 
     private var secondsElapsed = 0
@@ -170,8 +167,7 @@ class CountdownViewModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 withAnimation {
-                    self.offsetX = (self.offsetX == 0) ? 50 : 0
-                    self.scale = (self.scale == 1.0) ? 1.5 : 1.0
+                    self.scale = (self.scale == 1.0) ? 1.2 : 1.0
                 }
             }
     }
