@@ -29,8 +29,9 @@ struct CountdownView: View {
                                 Text("Подключение к серверу...")
                                     .font(.title2)
                                     .fontWeight(.semibold)
-                                    .opacity(viewModel.opacity)
-                                    .animation(.easeIn(duration: 1), value: viewModel.opacity)
+                                    .offset(x: viewModel.offsetX)
+                                    .scaleEffect(viewModel.scale)
+                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.offsetX)
                                 ProgressView()
                             }
                         case .fetchingItems:
@@ -38,8 +39,9 @@ struct CountdownView: View {
                                 Text("Загрузка товаров...")
                                     .font(.title2)
                                     .fontWeight(.semibold)
-                                    .opacity(viewModel.opacity)
-                                    .animation(.easeIn(duration: 1), value: viewModel.opacity)
+                                    .offset(x: viewModel.offsetX)
+                                    .scaleEffect(viewModel.scale)
+                                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: viewModel.offsetX)
                                 ProgressView()
                             }
                         }
@@ -92,15 +94,16 @@ struct Product: Identifiable {
 class CountdownViewModel: ObservableObject {
     @Published var viewState: LoadingState<[Product]> = .initial
     @Published var currentPhase: Phase = .connectingToServer
-    @Published var opacity: Double = 1.0
     @Published var timeString = ""
+    @Published var offsetX: CGFloat = 0.0
+    @Published var scale: CGFloat = 1.0
 
     private var secondsElapsed = 0
 
     private let timePublisher = PassthroughSubject<String, Never>()
     private var subscriptions = Set<AnyCancellable>()
     private var timerSubscription: AnyCancellable?
-    private var opacitySubscription: AnyCancellable?
+    private var animationSubscription: AnyCancellable?
 
     private var products: [Product] = [
         .init(imageName: "flipphone", name: "iPhone", price: 800),
@@ -126,7 +129,7 @@ class CountdownViewModel: ObservableObject {
         viewState = .loading
         currentPhase = .connectingToServer
         simulateDataLoading()
-        initiateOpacityAnimation()
+        initiateAnimations()
     }
 
     private func setupBindings() {
@@ -160,12 +163,16 @@ class CountdownViewModel: ObservableObject {
         }
     }
 
-    private func initiateOpacityAnimation() {
-        opacitySubscription = Timer
-            .publish(every: 0.8, on: .main, in: .common)
+    private func initiateAnimations() {
+        animationSubscription = Timer
+            .publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                self?.opacity = (self?.opacity == 1.0) ? 0.0 : 1.0
+                guard let self = self else { return }
+                withAnimation {
+                    self.offsetX = (self.offsetX == 0) ? 50 : 0
+                    self.scale = (self.scale == 1.0) ? 1.5 : 1.0
+                }
             }
     }
 
